@@ -1,185 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fitness App</title>
     <style>
         body {
-            background-color: #333;
-            color: #f0f0f0;
             font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
         }
-        .timer-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .exercise-list {
+            margin-bottom: 20px;
         }
-        #count-up-timer, #count-down-timer {
-            font-size: 1.5em;
+        .exercise-item {
+            background-color: #444;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .input-section {
+            display: none;
+            margin-top: 10px;
+        }
+        .input-section.visible {
+            display: block;
+        }
+        .button {
+            background-color: #555;
+            border: none;
+            color: white;
             padding: 10px;
             cursor: pointer;
-        }
-        .exercise {
-            background-color: #444;
-            padding: 10px;
-            margin: 10px 0;
             border-radius: 5px;
-        }
-        .input-label {
-            display: block;
             margin-top: 5px;
         }
-        .note {
-            width: 100%;
-            max-height: 100px;
-            overflow: auto;
-        }
-        .add-exercise, .reset-button {
-            background-color: #555;
+        input[type="text"], input[type="number"], textarea {
+            width: calc(100% - 20px);
             padding: 10px;
-            text-align: center;
+            margin: 5px 0;
+            border: none;
             border-radius: 5px;
+        }
+        .timer {
+            font-size: 24px;
+            margin-bottom: 20px;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="timer-container">
-        <div id="count-up-timer">00:00:00</div>
-        <div id="count-down-timer">02:00</div>
-    </div>
-    <h2>Übungen</h2>
-    <div id="exercises-list"></div>
-    <div class="add-exercise" onclick="addExerciseForm()">Neue Übung hinzufügen</div>
-    <div class="reset-button" onclick="resetAll()">Alle Daten zurücksetzen</div>
 
-    <script>
-        let exercises = [];
-        let countUpSeconds = 0;
-        let countUpInterval;
-        let countDownSeconds = 120;
-        let countDownInterval;
+<h1>Fitness App</h1>
 
-        function addExerciseForm() {
-            const exerciseForm = document.createElement('div');
-            exerciseForm.className = 'exercise';
-            exerciseForm.innerHTML = `
-                <input type="text" id="exercise-name" placeholder="Übungsname"><br>
-                <label class="input-label">Intervall (in Tagen)</label>
-                <input type="number" id="exercise-interval" placeholder="Tage"><br>
-                <button onclick="saveExercise()">Speichern</button>
-            `;
-            document.body.appendChild(exerciseForm);
-        }
+<div class="timer" id="stopwatch">00:00:00</div>
+<div class="timer" id="countdown">02:00</div>
 
-        function saveExercise() {
-            const name = document.getElementById('exercise-name').value;
-            const interval = parseInt(document.getElementById('exercise-interval').value);
-            if (name && interval) {
-                exercises.push({ name, interval, daysRemaining: interval, sets: [], note: "" });
-                renderExercises();
+<div class="exercise-list" id="exerciseList"></div>
+
+<div id="addExercise" class="input-section">
+    <input type="text" id="exerciseName" placeholder="Übungsname">
+    <input type="number" id="exerciseInterval" placeholder="Intervall (Tage)">
+    <button class="button" id="saveExercise">Hinzufügen</button>
+</div>
+
+<button class="button" id="toggleAddExercise">Neue Übung hinzufügen</button>
+<button class="button" id="resetAll">Alle Daten löschen</button>
+
+<script>
+    let exercises = [];
+    let timerInterval, countdownInterval;
+    let stopwatchSeconds = 0, countdownSeconds = 120;
+
+    const stopwatchDisplay = document.getElementById('stopwatch');
+    const countdownDisplay = document.getElementById('countdown');
+
+    // Start/Reset Stopwatch
+    stopwatchDisplay.onclick = function () {
+        if (timerInterval) return; // Timer läuft bereits
+        timerInterval = setInterval(() => {
+            stopwatchSeconds++;
+            const hours = String(Math.floor(stopwatchSeconds / 3600)).padStart(2, '0');
+            const minutes = String(Math.floor((stopwatchSeconds % 3600) / 60)).padStart(2, '0');
+            const seconds = String(stopwatchSeconds % 60).padStart(2, '0');
+            stopwatchDisplay.innerText = `${hours}:${minutes}:${seconds}`;
+        }, 1000);
+    };
+
+    // Reset Stopwatch on double-click
+    stopwatchDisplay.ondblclick = function () {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        stopwatchSeconds = 0;
+        stopwatchDisplay.innerText = '00:00:00';
+    };
+
+    // Start Countdown
+    countdownDisplay.onclick = function () {
+        clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            countdownSeconds--;
+            if (countdownSeconds < 0) {
+                clearInterval(countdownInterval);
+                countdownDisplay.innerText = '00:00';
+            } else {
+                const minutes = String(Math.floor(countdownSeconds / 60)).padStart(2, '0');
+                const seconds = String(countdownSeconds % 60).padStart(2, '0');
+                countdownDisplay.innerText = `${minutes}:${seconds}`;
             }
-        }
+        }, 1000);
+    };
 
-        function renderExercises() {
-            const exercisesList = document.getElementById('exercises-list');
-            exercisesList.innerHTML = '';
-            exercises.sort((a, b) => a.daysRemaining - b.daysRemaining).forEach((exercise, index) => {
-                const exerciseDiv = document.createElement('div');
-                exerciseDiv.className = 'exercise';
-                exerciseDiv.innerHTML = `
-                    <div onclick="toggleExercise(${index})">
-                        ${exercise.name} (${exercise.interval}) - Tage: ${exercise.daysRemaining}
-                    </div>
-                    <div id="exercise-${index}" style="display: none;">
-                        <label class="input-label">Gewicht</label>
-                        <input type="number" placeholder="Gewicht" oninput="updateSet(${index}, 0, 'weight', this.value)">
-                        <label class="input-label">Wiederholungen</label>
-                        <input type="number" placeholder="Wiederholungen" oninput="updateSet(${index}, 0, 'reps', this.value)">
-                        <button onclick="addSet(${index})">Satz hinzufügen</button>
-                        <button onclick="removeExercise(${index})">Löschen</button>
-                        <textarea class="note" oninput="updateNote(${index}, this.value)" placeholder="Notiz">${exercise.note}</textarea>
-                    </div>
-                `;
-                exercisesList.appendChild(exerciseDiv);
-            });
-        }
+    // Reset Countdown on double-click
+    countdownDisplay.ondblclick = function () {
+        clearInterval(countdownInterval);
+        countdownSeconds = 120;
+        countdownDisplay.innerText = '02:00';
+    };
 
-        function toggleExercise(index) {
-            const exerciseDiv = document.getElementById(`exercise-${index}`);
-            exerciseDiv.style.display = exerciseDiv.style.display === 'none' ? 'block' : 'none';
-        }
+    document.getElementById('toggleAddExercise').onclick = function () {
+        const addExerciseSection = document.getElementById('addExercise');
+        addExerciseSection.classList.toggle('visible');
+    };
 
-        function addSet(index) {
-            exercises[index].sets.push({ weight: 0, reps: 0 });
+    document.getElementById('saveExercise').onclick = function () {
+        const name = document.getElementById('exerciseName').value;
+        const interval = parseInt(document.getElementById('exerciseInterval').value);
+        if (name && !isNaN(interval)) {
+            exercises.push({ name, interval, daysRemaining: interval });
+            document.getElementById('exerciseName').value = '';
+            document.getElementById('exerciseInterval').value = '';
             renderExercises();
         }
+    };
 
-        function updateSet(exIndex, setIndex, key, value) {
-            exercises[exIndex].sets[setIndex][key] = value;
-        }
+    function renderExercises() {
+        const exerciseList = document.getElementById('exerciseList');
+        exerciseList.innerHTML = '';
+        exercises.sort((a, b) => a.daysRemaining - b.daysRemaining).forEach((exercise, index) => {
+            const exerciseItem = document.createElement('div');
+            exerciseItem.className = 'exercise-item';
+            exerciseItem.innerHTML = `${exercise.name} (${exercise.interval} Tage) - ${exercise.daysRemaining} Tage`;
+            exerciseItem.onclick = () => toggleExerciseDetails(index);
+            exerciseList.appendChild(exerciseItem);
+        });
+    }
 
-        function updateNote(index, value) {
-            exercises[index].note = value;
-        }
-
-        function removeExercise(index) {
-            exercises.splice(index, 1);
+    document.getElementById('resetAll').onclick = function () {
+        if (confirm('Möchten Sie wirklich alle Daten löschen?')) {
+            exercises = [];
             renderExercises();
         }
+    };
 
-        function resetAll() {
-            if (confirm("Willst du wirklich alles löschen?")) {
-                exercises = [];
-                renderExercises();
-            }
-        }
+    function toggleExerciseDetails(index) {
+        // Hier kannst du weitere Details einfügen, wie z.B. Eingabefelder für Gewicht und Wiederholungen
+    }
 
-        // Count-up timer
-        document.getElementById('count-up-timer').addEventListener('dblclick', resetCountUp);
-        function startCountUp() {
-            countUpInterval = setInterval(() => {
-                countUpSeconds++;
-                document.getElementById('count-up-timer').textContent = formatTime(countUpSeconds);
-            }, 1000);
-        }
-        function resetCountUp() {
-            clearInterval(countUpInterval);
-            countUpSeconds = 0;
-            document.getElementById('count-up-timer').textContent = '00:00:00';
-            startCountUp();
-        }
-        startCountUp();
+</script>
 
-        // Count-down timer
-        document.getElementById('count-down-timer').addEventListener('dblclick', resetCountDown);
-        function startCountDown() {
-            countDownInterval = setInterval(() => {
-                if (countDownSeconds > 0) {
-                    countDownSeconds--;
-                    document.getElementById('count-down-timer').textContent = formatTime(countDownSeconds);
-                } else {
-                    clearInterval(countDownInterval);
-                }
-            }, 1000);
-        }
-        function resetCountDown() {
-            clearInterval(countDownInterval);
-            countDownSeconds = 120;
-            document.getElementById('count-down-timer').textContent = '02:00';
-            startCountDown();
-        }
-        startCountDown();
-
-        function formatTime(seconds) {
-            const hrs = Math.floor(seconds / 3600);
-            const mins = Math.floor((seconds % 3600) / 60);
-            const secs = seconds % 60;
-            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-
-        renderExercises();
-    </script>
 </body>
 </html>
