@@ -1,223 +1,114 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fitness App</title>
     <style>
         body {
-            background-color: #121212;
-            color: #ffffff;
+            background-color: #333;
+            color: #f0f0f0;
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 0;
         }
-
-        h1 {
-            display: none;
-        }
-
-        #clock-container {
+        .timer-container {
             display: flex;
             justify-content: space-between;
-            width: 100%;
-            max-width: 300px;
-            margin: 20px 0;
-            font-size: 1.5em;
+            align-items: center;
         }
-
-        .timer-button {
+        #count-up-timer, #count-down-timer {
+            font-size: 1.5em;
+            padding: 10px;
             cursor: pointer;
         }
-
-        #exercise-list {
-            width: 90%;
-            max-width: 500px;
-        }
-
         .exercise {
-            background-color: #1e1e1e;
-            margin: 10px 0;
+            background-color: #444;
             padding: 10px;
-            border-radius: 8px;
+            margin: 10px 0;
+            border-radius: 5px;
         }
-
-        .set-fields {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-        }
-
-        .note-field {
-            width: 100%;
-            height: 60px;
+        .input-label {
+            display: block;
             margin-top: 5px;
         }
-
-        #add-exercise-form {
-            margin-top: 20px;
+        .note {
+            width: 100%;
+            max-height: 100px;
+            overflow: auto;
         }
-
-        #reset-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #f44336;
-            color: #ffffff;
-            border: none;
+        .add-exercise, .reset-button {
+            background-color: #555;
+            padding: 10px;
+            text-align: center;
             border-radius: 5px;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div id="clock-container">
-        <span id="clock" class="timer-button" onclick="toggleStopwatch()">00:00:00</span>
-        <span id="timer" class="timer-button" onclick="toggleCountdown()">02:00</span>
+    <div class="timer-container">
+        <div id="count-up-timer">00:00:00</div>
+        <div id="count-down-timer">02:00</div>
     </div>
-    
-    <div id="exercise-list"></div>
-
-    <div id="add-exercise-form">
-        <input type="text" id="exercise-name" placeholder="Übungsname" />
-        <input type="number" id="interval-days" placeholder="Intervall (Tage)" />
-        <button onclick="addExercise()">Hinzufügen</button>
-    </div>
-
-    <button id="reset-button" onclick="resetApp()">Zurücksetzen</button>
+    <h2>Übungen</h2>
+    <div id="exercises-list"></div>
+    <div class="add-exercise" onclick="addExerciseForm()">Neue Übung hinzufügen</div>
+    <div class="reset-button" onclick="resetAll()">Alle Daten zurücksetzen</div>
 
     <script>
-        let exercises = JSON.parse(localStorage.getItem("exercises")) || [];
-        let stopwatchInterval, countdownInterval;
-        let stopwatchSeconds = 0;
-        let countdownSeconds = 120;
+        let exercises = [];
+        let countUpSeconds = 0;
+        let countUpInterval;
+        let countDownSeconds = 120;
+        let countDownInterval;
 
-        function renderExercises() {
-            const exerciseList = document.getElementById("exercise-list");
-            exerciseList.innerHTML = "";
-            exercises.sort((a, b) => a.daysRemaining - b.daysRemaining);
-
-            exercises.forEach((exercise, index) => {
-                const exerciseDiv = document.createElement("div");
-                exerciseDiv.classList.add("exercise");
-
-                const nameLabel = document.createElement("h3");
-                nameLabel.textContent = `${exercise.name} - Intervall: ${exercise.interval} Tage`;
-                nameLabel.onclick = () => toggleDetails(index);
-                exerciseDiv.appendChild(nameLabel);
-
-                const daysRemainingLabel = document.createElement("p");
-                daysRemainingLabel.textContent = `Tage bis zum Training: ${exercise.daysRemaining}`;
-                exerciseDiv.appendChild(daysRemainingLabel);
-
-                if (exercise.expanded) {
-                    const detailsDiv = document.createElement("div");
-
-                    const labelRow = document.createElement("div");
-                    labelRow.classList.add("set-fields");
-                    const weightLabel = document.createElement("span");
-                    weightLabel.textContent = "Gewicht";
-                    const repsLabel = document.createElement("span");
-                    repsLabel.textContent = "Wiederholungen";
-                    labelRow.appendChild(weightLabel);
-                    labelRow.appendChild(repsLabel);
-                    detailsDiv.appendChild(labelRow);
-
-                    exercise.sets.forEach((set, setIndex) => {
-                        const setDiv = document.createElement("div");
-                        setDiv.classList.add("set-fields");
-
-                        const weightInput = document.createElement("input");
-                        weightInput.type = "number";
-                        weightInput.value = set.weight;
-                        weightInput.oninput = (e) => updateSet(index, setIndex, "weight", e.target.value);
-                        setDiv.appendChild(weightInput);
-
-                        const repsInput = document.createElement("input");
-                        repsInput.type = "number";
-                        repsInput.value = set.reps;
-                        repsInput.oninput = (e) => updateSet(index, setIndex, "reps", e.target.value);
-                        setDiv.appendChild(repsInput);
-
-                        const deleteSetButton = document.createElement("button");
-                        deleteSetButton.textContent = "-";
-                        deleteSetButton.onclick = () => removeSet(index, setIndex);
-                        setDiv.appendChild(deleteSetButton);
-
-                        detailsDiv.appendChild(setDiv);
-                    });
-
-                    const addSetButton = document.createElement("button");
-                    addSetButton.textContent = "Satz hinzufügen";
-                    addSetButton.onclick = () => addSet(index);
-                    detailsDiv.appendChild(addSetButton);
-
-                    const saveButton = document.createElement("button");
-                    saveButton.textContent = "Speichern";
-                    saveButton.onclick = () => saveExercise(index);
-                    detailsDiv.appendChild(saveButton);
-
-                    const deleteButton = document.createElement("button");
-                    deleteButton.textContent = "Löschen";
-                    deleteButton.onclick = () => deleteExercise(index);
-                    detailsDiv.appendChild(deleteButton);
-
-                    const noteToggle = document.createElement("button");
-                    noteToggle.textContent = "Notiz";
-                    noteToggle.onclick = () => toggleNoteField(index);
-                    detailsDiv.appendChild(noteToggle);
-
-                    if (exercise.showNote) {
-                        const noteField = document.createElement("textarea");
-                        noteField.classList.add("note-field");
-                        noteField.value = exercise.note;
-                        noteField.oninput = (e) => updateNote(index, e.target.value);
-                        detailsDiv.appendChild(noteField);
-                    }
-
-                    exerciseDiv.appendChild(detailsDiv);
-                }
-
-                exerciseList.appendChild(exerciseDiv);
-            });
-            localStorage.setItem("exercises", JSON.stringify(exercises));
+        function addExerciseForm() {
+            const exerciseForm = document.createElement('div');
+            exerciseForm.className = 'exercise';
+            exerciseForm.innerHTML = `
+                <input type="text" id="exercise-name" placeholder="Übungsname"><br>
+                <label class="input-label">Intervall (in Tagen)</label>
+                <input type="number" id="exercise-interval" placeholder="Tage"><br>
+                <button onclick="saveExercise()">Speichern</button>
+            `;
+            document.body.appendChild(exerciseForm);
         }
 
-        function toggleDetails(index) {
-            exercises[index].expanded = !exercises[index].expanded;
-            renderExercises();
-        }
-
-        function toggleNoteField(index) {
-            exercises[index].showNote = !exercises[index].showNote;
-            renderExercises();
-        }
-
-        function updateNote(index, value) {
-            exercises[index].note = value.slice(0, 100);
-            localStorage.setItem("exercises", JSON.stringify(exercises));
-        }
-
-        function addExercise() {
-            const name = document.getElementById("exercise-name").value;
-            const interval = parseInt(document.getElementById("interval-days").value);
-            if (name && interval > 0) {
-                exercises.push({
-                    name,
-                    interval,
-                    daysRemaining: interval,
-                    sets: [{ weight: 0, reps: 0 }],
-                    done: false,
-                    expanded: false,
-                    showNote: false,
-                    note: ""
-                });
-                document.getElementById("exercise-name").value = "";
-                document.getElementById("interval-days").value = "";
+        function saveExercise() {
+            const name = document.getElementById('exercise-name').value;
+            const interval = parseInt(document.getElementById('exercise-interval').value);
+            if (name && interval) {
+                exercises.push({ name, interval, daysRemaining: interval, sets: [], note: "" });
                 renderExercises();
             }
+        }
+
+        function renderExercises() {
+            const exercisesList = document.getElementById('exercises-list');
+            exercisesList.innerHTML = '';
+            exercises.sort((a, b) => a.daysRemaining - b.daysRemaining).forEach((exercise, index) => {
+                const exerciseDiv = document.createElement('div');
+                exerciseDiv.className = 'exercise';
+                exerciseDiv.innerHTML = `
+                    <div onclick="toggleExercise(${index})">
+                        ${exercise.name} (${exercise.interval}) - Tage: ${exercise.daysRemaining}
+                    </div>
+                    <div id="exercise-${index}" style="display: none;">
+                        <label class="input-label">Gewicht</label>
+                        <input type="number" placeholder="Gewicht" oninput="updateSet(${index}, 0, 'weight', this.value)">
+                        <label class="input-label">Wiederholungen</label>
+                        <input type="number" placeholder="Wiederholungen" oninput="updateSet(${index}, 0, 'reps', this.value)">
+                        <button onclick="addSet(${index})">Satz hinzufügen</button>
+                        <button onclick="removeExercise(${index})">Löschen</button>
+                        <textarea class="note" oninput="updateNote(${index}, this.value)" placeholder="Notiz">${exercise.note}</textarea>
+                    </div>
+                `;
+                exercisesList.appendChild(exerciseDiv);
+            });
+        }
+
+        function toggleExercise(index) {
+            const exerciseDiv = document.getElementById(`exercise-${index}`);
+            exerciseDiv.style.display = exerciseDiv.style.display === 'none' ? 'block' : 'none';
         }
 
         function addSet(index) {
@@ -225,66 +116,67 @@
             renderExercises();
         }
 
-        function removeSet(index, setIndex) {
-            exercises[index].sets.splice(setIndex, 1);
-            renderExercises();
+        function updateSet(exIndex, setIndex, key, value) {
+            exercises[exIndex].sets[setIndex][key] = value;
         }
 
-        function updateSet(exerciseIndex, setIndex, field, value) {
-            exercises[exerciseIndex].sets[setIndex][field] = parseInt(value);
-            renderExercises();
+        function updateNote(index, value) {
+            exercises[index].note = value;
         }
 
-        function saveExercise(index) {
-            exercises[index].done = true;
-            renderExercises();
-        }
-
-        function deleteExercise(index) {
+        function removeExercise(index) {
             exercises.splice(index, 1);
             renderExercises();
         }
 
-        function resetApp() {
-            if (confirm("Möchtest du wirklich alle Daten löschen?")) {
-                localStorage.removeItem("exercises");
+        function resetAll() {
+            if (confirm("Willst du wirklich alles löschen?")) {
                 exercises = [];
                 renderExercises();
             }
         }
 
-        function toggleStopwatch() {
-            clearInterval(stopwatchInterval);
-            stopwatchInterval = setInterval(() => {
-                stopwatchSeconds++;
-                updateStopwatchDisplay();
+        // Count-up timer
+        document.getElementById('count-up-timer').addEventListener('dblclick', resetCountUp);
+        function startCountUp() {
+            countUpInterval = setInterval(() => {
+                countUpSeconds++;
+                document.getElementById('count-up-timer').textContent = formatTime(countUpSeconds);
             }, 1000);
         }
+        function resetCountUp() {
+            clearInterval(countUpInterval);
+            countUpSeconds = 0;
+            document.getElementById('count-up-timer').textContent = '00:00:00';
+            startCountUp();
+        }
+        startCountUp();
 
-        function toggleCountdown() {
-            clearInterval(countdownInterval);
-            countdownInterval = setInterval(() => {
-                countdownSeconds--;
-                updateCountdownDisplay();
-                if (countdownSeconds <= 0) {
-                    clearInterval(countdownInterval);
+        // Count-down timer
+        document.getElementById('count-down-timer').addEventListener('dblclick', resetCountDown);
+        function startCountDown() {
+            countDownInterval = setInterval(() => {
+                if (countDownSeconds > 0) {
+                    countDownSeconds--;
+                    document.getElementById('count-down-timer').textContent = formatTime(countDownSeconds);
+                } else {
+                    clearInterval(countDownInterval);
                 }
             }, 1000);
         }
-
-        function updateStopwatchDisplay() {
-            const hours = Math.floor(stopwatchSeconds / 3600);
-            const minutes = Math.floor((stopwatchSeconds % 3600) / 60);
-            const seconds = stopwatchSeconds % 60;
-            document.getElementById("clock").textContent = 
-                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        function resetCountDown() {
+            clearInterval(countDownInterval);
+            countDownSeconds = 120;
+            document.getElementById('count-down-timer').textContent = '02:00';
+            startCountDown();
         }
+        startCountDown();
 
-        function updateCountdownDisplay() {
-            const minutes = Math.floor(countdownSeconds / 60);
-            const seconds = countdownSeconds % 60;
-            document.getElementById("timer").textContent = 
-                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        function formatTime(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
 
         renderExercises();
