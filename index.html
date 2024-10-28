@@ -20,6 +20,7 @@
             margin: 5px 0;
             padding: 10px;
             border-radius: 5px;
+            cursor: pointer;
         }
         .input-section {
             display: none;
@@ -48,12 +49,12 @@
             font-size: 24px;
             margin-bottom: 20px;
             cursor: pointer;
+            display: inline-block;
+            margin-right: 10px;
         }
     </style>
 </head>
 <body>
-
-<h1>Fitness App</h1>
 
 <div class="timer" id="stopwatch">00:00:00</div>
 <div class="timer" id="countdown">02:00</div>
@@ -156,9 +157,28 @@
     };
 
     function toggleExerciseDetails(index) {
-        // Hier kannst du weitere Details einfügen, wie z.B. Eingabefelder für Gewicht und Wiederholungen
+        const exercise = exercises[index];
+        const exerciseDetails = document.createElement('div');
+        exerciseDetails.className = 'input-section';
+        exerciseDetails.innerHTML = `
+            <input type="number" placeholder="Gewicht" min="0" />
+            <input type="number" placeholder="Wiederholungen" min="0" />
+            <button class="button" onclick="addSet(${index})">Satz hinzufügen</button>
+            <button class="button" onclick="removeExercise(${index})">Übung entfernen</button>
+        `;
+        exerciseDetails.classList.toggle('visible');
+        exerciseDetails.style.display = exerciseDetails.style.display === 'block' ? 'none' : 'block';
+        exerciseList.appendChild(exerciseDetails);
     }
 
+    function addSet(index) {
+        // Funktion zum Hinzufügen eines Satzes
+    }
+
+    function removeExercise(index) {
+        exercises.splice(index, 1);
+        renderExercises();
+    }
 </script>
 
 </body>
