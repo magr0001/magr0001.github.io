@@ -82,11 +82,11 @@
             color: #aaaaaa;
         }
         .timer {
-            font-size: 50px;
+            font-size: 48px;
             margin-bottom: 20px;
             cursor: pointer;
             display: inline-block;
-            margin-right: 25px;
+            margin-right: 23px;
         }
     </style>
 </head>
@@ -162,7 +162,7 @@
                 exerciseDiv.className = "exercise" + (exercise.done ? " collapsed" : "");
                 
                 const title = document.createElement("p");
-                title.innerHTML = `<strong>${exercise.name}</strong> (${exercise.interval}) - Noch ${exercise.daysRemaining} Tage`;
+                title.innerHTML = `<strong>${exercise.name}</strong> (${exercise.interval}) - ${exercise.daysRemaining} Tage`;
                 exerciseDiv.appendChild(title);
 
                 // Toggle nur beim Klick auf den Titel, nicht auf Eingabefelder
