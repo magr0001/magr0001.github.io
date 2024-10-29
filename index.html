@@ -21,6 +21,10 @@
             padding: 10px;
             border-radius: 5px;
             cursor: pointer;
+            position: relative;
+        }
+        .exercise-item.active {
+            background-color: #8B0000; /* Dunkelrot */
         }
         .input-section {
             display: none;
@@ -75,7 +79,7 @@
 <button class="button" id="resetAll">Alle Daten löschen</button>
 
 <script>
-    let exercises = [];
+    let exercises = JSON.parse(localStorage.getItem('exercises')) || [];
     let timerInterval, countdownInterval;
     let stopwatchSeconds = 0, countdownSeconds = 120;
 
@@ -134,9 +138,10 @@
         const name = document.getElementById('exerciseName').value;
         const interval = parseInt(document.getElementById('exerciseInterval').value);
         if (name && !isNaN(interval)) {
-            exercises.push({ name, interval, daysRemaining: interval, sets: [], note: '' });
+            exercises.push({ name, interval, daysRemaining: interval, sets: [], note: '', active: false });
             document.getElementById('exerciseName').value = '';
             document.getElementById('exerciseInterval').value = '';
+            saveExercises(); // Speichern nach Hinzufügen
             renderExercises();
         }
     };
@@ -146,22 +151,17 @@
         exerciseList.innerHTML = '';
         exercises.sort((a, b) => a.daysRemaining - b.daysRemaining).forEach((exercise, index) => {
             const exerciseItem = document.createElement('div');
-            exerciseItem.className = 'exercise-item';
+            exerciseItem.className = 'exercise-item' + (exercise.active ? ' active' : '');
             exerciseItem.innerHTML = `${exercise.name} (${exercise.interval} Tage) - ${exercise.daysRemaining} Tage`;
             exerciseItem.onclick = () => toggleExerciseDetails(index);
             exerciseList.appendChild(exerciseItem);
         });
     }
 
-    document.getElementById('resetAll').onclick = function () {
-        if (confirm('Möchten Sie wirklich alle Daten löschen?')) {
-            exercises = [];
-            renderExercises();
-        }
-    };
-
     function toggleExerciseDetails(index) {
         const exercise = exercises[index];
+        exercise.active = !exercise.active;
+
         const exerciseDetails = document.createElement('div');
         exerciseDetails.className = 'input-section visible';
         exerciseDetails.innerHTML = `
@@ -169,37 +169,83 @@
                 <input type="number" placeholder="Gewicht" min="0" />
                 <input type="number" placeholder="Wiederholungen" min="0" />
             </div>
-            <textarea placeholder="Notiz (max 100 Zeichen)" maxlength="100" oninput="saveNote(${index}, this.value)"></textarea>
             <button class="button" onclick="addSet(${index})">Satz hinzufügen</button>
             <button class="button" onclick="removeSet(${index})">Übung entfernen</button>
+            <button class="button" onclick="saveExercise(${index})">Übung speichern</button>
+            <div class="set-list" id="setList-${index}"></div>
         `;
-        exerciseDetails.style.display = exerciseDetails.style.display === 'block' ? 'none' : 'block';
-        exerciseList.appendChild(exerciseDetails);
+
+        // Zuklappen, wenn die Übung bereits offen ist
+        if (exercise.active) {
+            exerciseDetails.style.display = 'block';
+            exerciseDetails.querySelector('.set-list').innerHTML = exercise.sets.map(set => 
+                `<div class="input-inline">
+                    <input type="number" value="${set.weight}" placeholder="Gewicht" min="0" />
+                    <input type="number" value="${set.reps}" placeholder="Wiederholungen" min="0" />
+                    <button class="button" onclick="removeSpecificSet(${index}, this)">-</button>
+                </div>`
+            ).join('');
+        } else {
+            exerciseDetails.style.display = 'none';
+        }
+
+        document.getElementById('exerciseList').appendChild(exerciseDetails);
+        saveExercises(); // Speichern nach Änderung
+        renderExercises();
     }
 
     function addSet(index) {
-        const weightInput = document.querySelectorAll('.input-inline')[index].querySelector('input[type="number"]:first-child');
-        const repsInput = document.querySelectorAll('.input-inline')[index].querySelector('input[type="number"]:last-child');
-        const weight = weightInput.value;
-        const reps = repsInput.value;
-
-        if (weight && reps) {
-            exercises[index].sets.push({ weight, reps });
-            weightInput.value = '';
-            repsInput.value = '';
-            renderExercises();
-        }
+        exercises[index].sets.push({ weight: 0, reps: 0 }); // Neue Zeile hinzufügen
+        saveExercises(); // Speichern nach Hinzufügen
+        renderExercises();
     }
 
     function removeSet(index) {
         exercises.splice(index, 1);
+        saveExercises(); // Speichern nach Entfernen
         renderExercises();
     }
 
-    function saveNote(index, note) {
-        exercises[index].note = note;
+    function removeSpecificSet(index, button) {
+        const setIndex = Array.from(button.parentNode.parentNode.children).indexOf(button.parentNode);
+        exercises[index].sets.splice(setIndex, 1); // Set löschen
+        saveExercises(); // Speichern nach Entfernen
+        renderExercises();
     }
-</script>
 
+    function saveExercise(index) {
+        exercises[index].active = false;
+        exercises[index].daysRemaining -= 1; // Anzahl der Tage verringern
+        if (exercises[index].daysRemaining < 0) {
+            exercises[index].daysRemaining = 0;
+        }
+        saveExercises(); // Speichern nach Ändern
+        renderExercises();
+    }
+
+    function saveExercises() {
+        localStorage.setItem('exercises', JSON.stringify(exercises));
+    }
+
+    function dailyIntervalDecrement() {
+        exercises.forEach(exercise => {
+            if (exercise.daysRemaining > 0) {
+                exercise.daysRemaining -= 1;
+            }
+        });
+        saveExercises(); // Speichern nach täglichem Runterzählen
+        renderExercises();
+    }
+
+    // Tägliches Runterzählen der Intervalle
+    const lastRun = localStorage.getItem('lastRun');
+    const today = new Date().toISOString().split('T')[0];
+    if (lastRun !== today) {
+        dailyIntervalDecrement();
+        localStorage.setItem('lastRun', today);
+    }
+
+    renderExercises();
+</script>
 </body>
 </html>
