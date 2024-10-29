@@ -160,10 +160,10 @@
 
     function toggleExerciseDetails(index) {
         const exercise = exercises[index];
-        exercise.active = !exercise.active;
+        exercise.active = !exercise.active; // Wechseln des Status
 
         const exerciseDetails = document.createElement('div');
-        exerciseDetails.className = 'input-section visible';
+        exerciseDetails.className = 'input-section' + (exercise.active ? ' visible' : '');
         exerciseDetails.innerHTML = `
             <div class="input-inline">
                 <input type="number" placeholder="Gewicht" min="0" />
@@ -189,7 +189,8 @@
             exerciseDetails.style.display = 'none';
         }
 
-        document.getElementById('exerciseList').appendChild(exerciseDetails);
+        // Füge die Details der Übung nach dem entsprechenden Element hinzu
+        exerciseList.appendChild(exerciseDetails);
         saveExercises(); // Speichern nach Änderung
         renderExercises();
     }
@@ -214,7 +215,7 @@
     }
 
     function saveExercise(index) {
-        exercises[index].active = false;
+        exercises[index].active = false; // Klappen
         exercises[index].daysRemaining -= 1; // Anzahl der Tage verringern
         if (exercises[index].daysRemaining < 0) {
             exercises[index].daysRemaining = 0;
