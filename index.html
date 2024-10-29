@@ -3,64 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workout Tracker</title>
+    <title>Fitness App</title>
     <style>
-        /* Dark Mode Styles */
         body {
             font-family: Arial, sans-serif;
-            background-color: #1e1e1e;
+            background-color: #121212;
             color: #ffffff;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
-
-        .exercise-list, .input-section {
-            width: 90%;
-            max-width: 600px;
-            margin-top: 20px;
+        .exercise {
+            margin-bottom: 10px;
             padding: 10px;
-            border-radius: 8px;
-            background-color: #2e2e2e;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .exercise-item {
-            padding: 10px;
-            margin: 5px 0;
-            border: 1px solid #444;
+            background-color: #333333;
             border-radius: 5px;
-            background-color: #333;
-            display: flex;
-            flex-direction: column;
+            cursor: pointer;
         }
-
-        .exercise-item.due {
-            background-color: #ff4d4d;
+        .exercise.collapsed {
+            background-color: #555555;
         }
-
-        .exercise-item.active {
-            background-color: #3b3b3b;
+        .details {
+            display: none;
+            margin-top: 10px;
         }
-
-        .input-inline {
-            display: flex;
-            gap: 10px;
+        .button {
+            background-color: #555;
+            border: none;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
             margin-top: 5px;
         }
-
-        .input-inline input {
-            flex: 1;
-            padding: 5px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            background-color: #444;
-            color: #fff;
+        .button2 {
+            background-color: #404040;
+            border: none;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-top: 3px;
         }
-
-        textarea {
+        .textarea {
             width: 100%;
             padding: 5px;
             margin-top: 5px;
@@ -70,180 +52,253 @@
             color: #fff;
             resize: vertical;
         }
-
-        button {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
+        /*
+        input[type="text"], input[type="number"], textarea {
+            width: calc(100% - 20px);
             padding: 10px;
             margin: 5px 0;
+            border: none;
             border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.2s;
+        }*/
+        .details input, .details button {
+            margin-right: 5px;
         }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        button.button-gray {
-            background-color: #6c757d;
-            color: #fff;
-        }
-
-        .button:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-        }
-
-        .hidden {
+        .add-exercise-form {
+            background-color: #444444;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
             display: none;
+        }
+        .exercise label {
+            font-size: 12px;
+            color: #aaaaaa;
+        }
+        .timer {
+            font-size: 24px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            display: inline-block;
+            margin-right: 10px;
         }
     </style>
 </head>
 <body>
+    
+    <div class="timer" id="stopwatch">00:00:00</div>
+    <div class="timer" id="countdown">02:00</div>
 
-<div class="exercise-list" id="exerciseList"></div>
 
-<div id="addExercise" class="input-section hidden">
-    <input type="text" id="exerciseName" placeholder="Übungsname">
-    <input type="number" id="exerciseInterval" placeholder="Intervall (Tage)">
-    <button class="button" id="saveExercise">Hinzufügen</button>
-</div>
+    <div id="exercise-list"></div>
 
-<button class="button" id="toggleAddExercise">Neue Übung hinzufügen</button>
-<button class="button button-gray" id="resetAll">Alle Daten löschen</button>
+    <button class="button" onclick="toggleAddExerciseForm()">Neue Übung hinzufügen</button>
+    <div id="add-exercise-form" class="add-exercise-form">
+        <input type="text" id="exercise-name" placeholder="Übungsname">
+        <input type="number" id="interval-days" placeholder="Intervall (Tage)">
+        <button class="button" onclick="addExercise()">Hinzufügen</button>
+    </div>
 
-<script>
-    let exercises = JSON.parse(localStorage.getItem('exercises')) || [];
+    <script>
+        let exercises = JSON.parse(localStorage.getItem("exercises")) || [];
+        let timerInterval, countdownInterval;
+        let stopwatchSeconds = 0, countdownSeconds = 120;
 
-    document.getElementById('toggleAddExercise').onclick = function () {
-        document.getElementById('addExercise').classList.toggle('hidden');
-    };
+        const stopwatchDisplay = document.getElementById('stopwatch');
+        const countdownDisplay = document.getElementById('countdown');
 
-    document.getElementById('saveExercise').onclick = function () {
-        const name = document.getElementById('exerciseName').value;
-        const interval = parseInt(document.getElementById('exerciseInterval').value);
-        if (name && !isNaN(interval)) {
-            exercises.push({
-                name,
-                interval,
-                lastCompleted: null,
-                sets: [{ weight: 0, reps: 0 }],
-                note: ''
+        stopwatchDisplay.onclick = function () {
+            if (timerInterval) return;
+            timerInterval = setInterval(() => {
+                stopwatchSeconds++;
+                const hours = String(Math.floor(stopwatchSeconds / 3600)).padStart(2, '0');
+                const minutes = String(Math.floor((stopwatchSeconds % 3600) / 60)).padStart(2, '0');
+                const seconds = String(stopwatchSeconds % 60).padStart(2, '0');
+                stopwatchDisplay.innerText = `${hours}:${minutes}:${seconds}`;
+            }, 1000);
+        };
+
+        stopwatchDisplay.ondblclick = function () {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            stopwatchSeconds = 0;
+            stopwatchDisplay.innerText = '00:00:00';
+        };
+
+        countdownDisplay.onclick = function () {
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                countdownSeconds--;
+                if (countdownSeconds < 0) {
+                    clearInterval(countdownInterval);
+                    countdownDisplay.innerText = '00:00';
+                } else {
+                    const minutes = String(Math.floor(countdownSeconds / 60)).padStart(2, '0');
+                    const seconds = String(countdownSeconds % 60).padStart(2, '0');
+                    countdownDisplay.innerText = `${minutes}:${seconds}`;
+                }
+            }, 1000);
+        };
+
+        countdownDisplay.ondblclick = function () {
+            clearInterval(countdownInterval);
+            countdownSeconds = 120;
+            countdownDisplay.innerText = '02:00';
+        };
+
+        function renderExercises() {
+            const exerciseList = document.getElementById("exercise-list");
+            exerciseList.innerHTML = "";
+            // Sortieren nach daysRemaining
+            exercises.sort((a, b) => a.daysRemaining - b.daysRemaining);
+            exercises.forEach((exercise, index) => {
+                const exerciseDiv = document.createElement("div");
+                exerciseDiv.className = "exercise" + (exercise.done ? " collapsed" : "");
+                
+                const title = document.createElement("p");
+                title.innerHTML = `<strong>${exercise.name}</strong> (${exercise.interval}) - Noch ${exercise.daysRemaining} Tage`;
+                exerciseDiv.appendChild(title);
+
+                // Toggle nur beim Klick auf den Titel, nicht auf Eingabefelder
+                title.onclick = () => toggleDetails(index);
+
+                const detailsDiv = document.createElement("div");
+                detailsDiv.className = "details";
+                if (exercise.expanded) detailsDiv.style.display = "block";
+
+                //const noteDiv = document.createElement("div");
+                const notes = document.createElement("textarea");
+                    notes.className = "textarea";
+                    notes.type = "text";
+                    notes.value = exercise.note;
+                    notes.onchange = (e) => updateSet(index, setIndex, "note", e.target.value);
+                //noteDiv.appendChild(notes);
+                detailsDiv.appendChild(notes);
+
+                exercise.sets.forEach((set, setIndex) => {
+                    const setDiv = document.createElement("div");
+                    
+
+
+
+                    const weightLabel = document.createElement("label");
+                    weightLabel.innerText = "Gewicht";
+                    const weightInput = document.createElement("input");
+                    weightInput.type = "number";
+                    weightInput.value = set.weight;
+                    weightInput.onchange = (e) => updateSet(index, setIndex, "weight", e.target.value);
+
+                    const repsLabel = document.createElement("label");
+                    repsLabel.innerText = "Wiederholungen";
+                    const repsInput = document.createElement("input");
+                    repsInput.type = "number";
+                    repsInput.value = set.reps;
+                    repsInput.onchange = (e) => updateSet(index, setIndex, "reps", e.target.value);
+
+                    const removeButton = document.createElement("button");
+                    removeButton.className = "button2";
+                    removeButton.innerText = "-";
+                    removeButton.onclick = (e) => { e.stopPropagation(); removeSet(index, setIndex); };
+
+
+                    setDiv.appendChild(weightLabel);
+                    setDiv.appendChild(weightInput);
+                    setDiv.appendChild(repsLabel);
+                    setDiv.appendChild(repsInput);
+                    setDiv.appendChild(removeButton);
+                    detailsDiv.appendChild(setDiv);
+                });
+
+                const addSetButton = document.createElement("button");
+                addSetButton.className = "button2";
+                addSetButton.innerText = "Satz hinzufügen";
+                addSetButton.onclick = (e) => { e.stopPropagation(); addSet(index); };
+
+                const saveButton = document.createElement("button");
+                saveButton.className = "button2";
+                saveButton.innerText = "Speichern";
+                saveButton.onclick = (e) => { e.stopPropagation(); saveExercise(index); };
+
+                const deleteButton = document.createElement("button");
+                deleteButton.className = "button2";
+                deleteButton.innerText = "Löschen";
+                deleteButton.onclick = (e) => { e.stopPropagation(); deleteExercise(index); };
+
+                detailsDiv.appendChild(addSetButton);
+                detailsDiv.appendChild(saveButton);
+                detailsDiv.appendChild(deleteButton);
+                exerciseDiv.appendChild(detailsDiv);
+                exerciseList.appendChild(exerciseDiv);
             });
-            document.getElementById('exerciseName').value = '';
-            document.getElementById('exerciseInterval').value = '';
-            saveExercises();
-            renderExercises();
+            localStorage.setItem("exercises", JSON.stringify(exercises));
         }
-    };
 
-    function renderExercises() {
-        const exerciseList = document.getElementById('exerciseList');
-        exerciseList.innerHTML = '';
-        const today = new Date().toISOString().split('T')[0];
-
-        // Sortieren nach verbleibenden Tagen
-        exercises.sort((a, b) => calculateDaysRemaining(a, today) - calculateDaysRemaining(b, today));
-
-        exercises.forEach((exercise, index) => {
-            const daysRemaining = calculateDaysRemaining(exercise, today);
-            const due = daysRemaining <= 0;
-
-            const exerciseItem = document.createElement('div');
-            exerciseItem.className = `exercise-item ${due ? 'due' : 'active'}`;
-            exerciseItem.innerHTML = `
-                ${exercise.name} (${exercise.interval} Tage) - Tage: ${daysRemaining}
-                <div class="input-section hidden" id="details-${index}">
-                    <textarea placeholder="Notizen">${exercise.note}</textarea>
-                    <div class="set-list" id="setList-${index}"></div>
-                    <div class="input-inline">
-                        <input type="number" placeholder="Gewicht" min="0" onchange="updateSet(${index}, 0, this.value, null)" value="${exercise.sets[0].weight}" />
-                        <input type="number" placeholder="Wiederholungen" min="0" onchange="updateSet(${index}, 0, null, this.value)" value="${exercise.sets[0].reps}" />
-                    </div>
-                    <button class="button" onclick="addSet(${index})">Satz hinzufügen</button>
-                    <button class="button button-gray" onclick="removeSet(${index})">Satz entfernen</button>
-                    <button class="button" onclick="markAsCompleted(${index})">Übung speichern</button>
-                    <button class="button button-gray" onclick="removeExercise(${index})">Übung entfernen</button>
-                </div>
-            `;
-            exerciseItem.onclick = () => toggleDetails(index);
-            exerciseList.appendChild(exerciseItem);
-            renderSets(index);
-        });
-    }
-
-    function calculateDaysRemaining(exercise, today) {
-        if (!exercise.lastCompleted) return exercise.interval;
-        const lastDate = new Date(exercise.lastCompleted);
-        const currentDate = new Date(today);
-        const differenceInTime = currentDate - lastDate;
-        const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24));
-        return exercise.interval - differenceInDays;
-    }
-
-    function toggleDetails(index) {
-        document.getElementById(`details-${index}`).classList.toggle('hidden');
-    }
-
-    function updateSet(index, setIndex, weight, reps) {
-        if (weight !== null) exercises[index].sets[setIndex].weight = weight;
-        if (reps !== null) exercises[index].sets[setIndex].reps = reps;
-        saveExercises();
-    }
-
-    function addSet(index) {
-        exercises[index].sets.push({ weight: 0, reps: 0 });
-        saveExercises();
-        renderExercises();
-    }
-
-    function removeSet(index) {
-        if (exercises[index].sets.length > 1) {
-            exercises[index].sets.pop();
-            saveExercises();
-            renderExercises();
+        function toggleAddExerciseForm() {
+            const form = document.getElementById("add-exercise-form");
+            form.style.display = form.style.display === "none" ? "block" : "none";
         }
-    }
 
-    function markAsCompleted(index) {
-        const today = new Date().toISOString().split('T')[0];
-        exercises[index].lastCompleted = today;
-        exercises[index].note = document.querySelector(`#details-${index} textarea`).value;
-        saveExercises();
-        renderExercises();
-    }
-
-    function removeExercise(index) {
-        exercises.splice(index, 1);
-        saveExercises();
-        renderExercises();
-    }
-
-    function saveExercises() {
-        localStorage.setItem('exercises', JSON.stringify(exercises));
-    }
-
-    function dailyIntervalDecrement() {
-        const today = new Date().toISOString().split('T')[0];
-        exercises.forEach(exercise => {
-            if (exercise.lastCompleted) {
-                exercise.daysRemaining = calculateDaysRemaining(exercise, today);
+        function addExercise() {
+            const name = document.getElementById("exercise-name").value;
+            const interval = parseInt(document.getElementById("interval-days").value);
+            if (name && !isNaN(interval)) {
+                exercises.push({
+                    name: name,
+                    interval: interval,
+                    daysRemaining: 0,
+                    sets: [{ weight: 0, reps: 0 }],
+                    note: '',
+                    expanded: false,
+                    done: false
+                });
+                renderExercises();
+                document.getElementById("exercise-name").value = "";
+                document.getElementById("interval-days").value = "";
+                toggleAddExerciseForm();
+            } else {
+                alert("Bitte einen Namen und ein gültiges Intervall angeben.");
             }
-        });
-        saveExercises();
+        }
+
+        function toggleDetails(index) {
+            exercises[index].expanded = !exercises[index].expanded;
+            renderExercises();
+        }
+
+        function addSet(index) {
+            exercises[index].sets.push({ weight: 0, reps: 0 });
+            renderExercises();
+        }
+
+        function removeSet(exerciseIndex, setIndex) {
+            exercises[exerciseIndex].sets.splice(setIndex, 1);
+            renderExercises();
+        }
+
+        function updateSet(exerciseIndex, setIndex, field, value) {
+            exercises[exerciseIndex].sets[setIndex][field] = value;
+        }
+
+        function saveExercise(index) {
+            exercises[index].done = true;
+            exercises[index].daysRemaining = exercises[index].interval;
+            exercises[index].expanded = false;
+            renderExercises();
+        }
+
+        function deleteExercise(index) {
+            exercises.splice(index, 1);
+            renderExercises();
+        }
+
+        function updateDaysRemaining() {
+            exercises.forEach(exercise => {
+                if (exercise.daysRemaining > 0) exercise.daysRemaining--;
+            });
+            renderExercises();
+        }
+
         renderExercises();
-    }
-
-    const lastRun = localStorage.getItem('lastRun');
-    const today = new Date().toISOString().split('T')[0];
-    if (lastRun !== today) {
-        dailyIntervalDecrement();
-        localStorage.setItem('lastRun', today);
-    }
-
-    renderExercises();
-</script>
+        setInterval(updateDaysRemaining, 86400000); // Update alle 24 Stunden
+    </script>
 </body>
 </html>
