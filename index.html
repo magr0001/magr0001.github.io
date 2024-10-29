@@ -45,6 +45,10 @@
             border: none;
             border-radius: 5px;
         }
+        .input-inline {
+            display: flex;
+            justify-content: space-between;
+        }
         .timer {
             font-size: 24px;
             margin-bottom: 20px;
@@ -130,7 +134,7 @@
         const name = document.getElementById('exerciseName').value;
         const interval = parseInt(document.getElementById('exerciseInterval').value);
         if (name && !isNaN(interval)) {
-            exercises.push({ name, interval, daysRemaining: interval });
+            exercises.push({ name, interval, daysRemaining: interval, sets: [], note: '' });
             document.getElementById('exerciseName').value = '';
             document.getElementById('exerciseInterval').value = '';
             renderExercises();
@@ -159,25 +163,41 @@
     function toggleExerciseDetails(index) {
         const exercise = exercises[index];
         const exerciseDetails = document.createElement('div');
-        exerciseDetails.className = 'input-section';
+        exerciseDetails.className = 'input-section visible';
         exerciseDetails.innerHTML = `
-            <input type="number" placeholder="Gewicht" min="0" />
-            <input type="number" placeholder="Wiederholungen" min="0" />
+            <div class="input-inline">
+                <input type="number" placeholder="Gewicht" min="0" />
+                <input type="number" placeholder="Wiederholungen" min="0" />
+            </div>
+            <textarea placeholder="Notiz (max 100 Zeichen)" maxlength="100" oninput="saveNote(${index}, this.value)"></textarea>
             <button class="button" onclick="addSet(${index})">Satz hinzufügen</button>
-            <button class="button" onclick="removeExercise(${index})">Übung entfernen</button>
+            <button class="button" onclick="removeSet(${index})">Übung entfernen</button>
         `;
-        exerciseDetails.classList.toggle('visible');
         exerciseDetails.style.display = exerciseDetails.style.display === 'block' ? 'none' : 'block';
         exerciseList.appendChild(exerciseDetails);
     }
 
     function addSet(index) {
-        // Funktion zum Hinzufügen eines Satzes
+        const weightInput = document.querySelectorAll('.input-inline')[index].querySelector('input[type="number"]:first-child');
+        const repsInput = document.querySelectorAll('.input-inline')[index].querySelector('input[type="number"]:last-child');
+        const weight = weightInput.value;
+        const reps = repsInput.value;
+
+        if (weight && reps) {
+            exercises[index].sets.push({ weight, reps });
+            weightInput.value = '';
+            repsInput.value = '';
+            renderExercises();
+        }
     }
 
-    function removeExercise(index) {
+    function removeSet(index) {
         exercises.splice(index, 1);
         renderExercises();
+    }
+
+    function saveNote(index, note) {
+        exercises[index].note = note;
     }
 </script>
 
