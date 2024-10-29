@@ -161,6 +161,7 @@
     function toggleExerciseDetails(index) {
         const exercise = exercises[index];
         exercise.active = !exercise.active; // Wechseln des Status
+        saveExercises(); // Speichern nach Änderung
 
         const exerciseDetails = document.createElement('div');
         exerciseDetails.className = 'input-section' + (exercise.active ? ' visible' : '');
@@ -170,7 +171,7 @@
                 <input type="number" placeholder="Wiederholungen" min="0" />
             </div>
             <button class="button" onclick="addSet(${index})">Satz hinzufügen</button>
-            <button class="button" onclick="removeSet(${index})">Übung entfernen</button>
+            <button class="button" onclick="removeExercise(${index})">Übung entfernen</button>
             <button class="button" onclick="saveExercise(${index})">Übung speichern</button>
             <div class="set-list" id="setList-${index}"></div>
         `;
@@ -191,7 +192,6 @@
 
         // Füge die Details der Übung nach dem entsprechenden Element hinzu
         exerciseList.appendChild(exerciseDetails);
-        saveExercises(); // Speichern nach Änderung
         renderExercises();
     }
 
@@ -201,7 +201,7 @@
         renderExercises();
     }
 
-    function removeSet(index) {
+    function removeExercise(index) {
         exercises.splice(index, 1);
         saveExercises(); // Speichern nach Entfernen
         renderExercises();
@@ -238,7 +238,7 @@
         renderExercises();
     }
 
-    // Tägliches Runterzählen der Intervalle
+    // Tägliches Runterzählen
     const lastRun = localStorage.getItem('lastRun');
     const today = new Date().toISOString().split('T')[0];
     if (lastRun !== today) {
