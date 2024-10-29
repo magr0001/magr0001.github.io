@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+    
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Fitness App</title>
     <style>
         body {
@@ -165,6 +166,7 @@
                 detailsDiv.className = "details";
                 if (exercise.expanded) detailsDiv.style.display = "block";
 
+                //Notizen werden nur einmal oben angezeigt
                 //const noteDiv = document.createElement("div");
                 const notes = document.createElement("textarea");
                     notes.className = "textarea";
@@ -180,18 +182,17 @@
 
 
 
-                    const weightLabel = document.createElement("label");
-                    weightLabel.innerText = "Gewicht";
                     const weightInput = document.createElement("input");
                     weightInput.type = "number";
                     weightInput.value = set.weight;
+                    weightInput.placeholder = "Gewicht";
                     weightInput.onchange = (e) => updateSet(index, setIndex, "weight", e.target.value);
 
-                    const repsLabel = document.createElement("label");
-                    repsLabel.innerText = "Wiederholungen";
+
                     const repsInput = document.createElement("input");
                     repsInput.type = "number";
                     repsInput.value = set.reps;
+                    repsInput.placeholder = "Wiederholungen";
                     repsInput.onchange = (e) => updateSet(index, setIndex, "reps", e.target.value);
 
                     const removeButton = document.createElement("button");
@@ -200,9 +201,8 @@
                     removeButton.onclick = (e) => { e.stopPropagation(); removeSet(index, setIndex); };
 
 
-                    setDiv.appendChild(weightLabel);
+
                     setDiv.appendChild(weightInput);
-                    setDiv.appendChild(repsLabel);
                     setDiv.appendChild(repsInput);
                     setDiv.appendChild(removeButton);
                     detailsDiv.appendChild(setDiv);
@@ -245,7 +245,7 @@
                     name: name,
                     interval: interval,
                     daysRemaining: 0,
-                    sets: [{ weight: 0, reps: 0 }],
+                    sets: [{ weight: '', reps: '' }],
                     note: '',
                     expanded: false,
                     done: false
@@ -265,7 +265,7 @@
         }
 
         function addSet(index) {
-            exercises[index].sets.push({ weight: 0, reps: 0 });
+            exercises[index].sets.push({ weight: '', reps: '' });
             renderExercises();
         }
 
