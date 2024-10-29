@@ -34,7 +34,7 @@
             cursor: pointer;
             border-radius: 5px;
             margin-top: 5px;
-            font-size: 110%;
+            font-size: 120%;
         }
         .button2 {
             background-color: #404040;
@@ -42,9 +42,9 @@
             color: white;
             padding: 10px;
             cursor: pointer;
-            border-radius: 3px;
-            margin-top: 3px;
-            font-size: 110%;
+            border-radius: 5px;
+            margin-top: 5px;
+            font-size: 90%;
         }
         .textarea {
             width: 97%;
@@ -60,7 +60,7 @@
         }
         
         input[type="text"], input[type="number"], textarea {
-            width: 38%;
+            width: 40%;
             padding: 5px;
             margin: 5px 0;
             border: none;
@@ -198,7 +198,7 @@
                     const repsInput = document.createElement("input");
                     repsInput.type = "number";
                     repsInput.value = set.reps;
-                    repsInput.placeholder = "Wiederholungen";
+                    repsInput.placeholder = "Wdh.";
                     repsInput.onchange = (e) => updateSet(index, setIndex, "reps", e.target.value);
 
                     const removeButton = document.createElement("button");
