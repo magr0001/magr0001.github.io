@@ -113,16 +113,34 @@
         let timerInterval, countdownInterval;
         let stopwatchSeconds = 0, countdownSeconds = 120;
 
+        let startTimer, startTimer2min;
+
         const stopwatchDisplay = document.getElementById('stopwatch');
         const countdownDisplay = document.getElementById('countdown');
 
-        stopwatchDisplay.onclick = function () {
+        /*stopwatchDisplay.onclick = function () {
             if (timerInterval) return;
             timerInterval = setInterval(() => {
                 stopwatchSeconds++;
                 const hours = String(Math.floor(stopwatchSeconds / 3600)).padStart(2, '0');
                 const minutes = String(Math.floor((stopwatchSeconds % 3600) / 60)).padStart(2, '0');
                 const seconds = String(stopwatchSeconds % 60).padStart(2, '0');
+                stopwatchDisplay.innerText = `${hours}:${minutes}:${seconds}`;
+            }, 1000);
+        };*/
+
+        stopwatchDisplay.onclick = function () {
+            const startValue = new Date();
+            if (timerInterval) return;
+            timerInterval = setInterval(() => {
+                stopwatchSeconds++;
+                startTimer = new Date();
+                
+                const difference = startTimer - startValue;
+
+                const hours = String(Math.floor(difference / 3600000)).padStart(2, '0');
+                const minutes = String(Math.floor(difference / 60000 - 60 * Math.floor(difference / 3600000))).padStart(2, '0');
+                const seconds = String(Math.floor(difference / 1000 - 60 * Math.floor(difference / 60000))).padStart(2, '0');
                 stopwatchDisplay.innerText = `${hours}:${minutes}:${seconds}`;
             }, 1000);
         };
@@ -134,6 +152,7 @@
             stopwatchDisplay.innerText = '00:00:00';
         };
 
+        /*
         countdownDisplay.onclick = function () {
             clearInterval(countdownInterval);
             countdownInterval = setInterval(() => {
@@ -144,6 +163,24 @@
                 } else {
                     const minutes = String(Math.floor(countdownSeconds / 60)).padStart(2, '0');
                     const seconds = String(countdownSeconds % 60).padStart(2, '0');
+                    countdownDisplay.innerText = `${minutes}:${seconds}`;
+                }
+            }, 1000);
+        };*/
+
+        countdownDisplay.onclick = function () {
+            const startValue2min = new Date();
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                startTimer2min = new Date();
+                const difference2min = startTimer2min - startValue2min;
+                countdownSeconds--;
+                if (difference2min > 120000) {
+                    clearInterval(countdownInterval);
+                    countdownDisplay.innerText = '00:00';
+                } else {
+                    const minutes = String(1 - Math.floor(difference2min / 60000)).padStart(2, '0');
+                    const seconds = String(59 - Math.floor(difference2min / 1000) + 60 * Math.floor(difference2min / 60000)).padStart(2, '0');
                     countdownDisplay.innerText = `${minutes}:${seconds}`;
                 }
             }, 1000);
@@ -181,7 +218,7 @@
                     notes.className = "textarea";
                     notes.type = "text";
                     notes.value = exercise.note;
-                    notes.onchange = (e) => updateSet(index, setIndex, "note", e.target.value);
+                    notes.onchange = (e) => updateNote(index, e.target.value);
                 //noteDiv.appendChild(notes);
                 detailsDiv.appendChild(notes);
 
@@ -285,6 +322,9 @@
 
         function updateSet(exerciseIndex, setIndex, field, value) {
             exercises[exerciseIndex].sets[setIndex][field] = value;
+        }
+        function updateNote(exerciseIndex, value) {
+            exercises[exerciseIndex].note = value;
         }
 
         function saveExercise(index) {
