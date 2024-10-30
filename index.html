@@ -178,7 +178,7 @@
                     clearInterval(countdownInterval);
                     countdownDisplay.innerText = '00:00';
                 } else {
-                    const minutes = String(1 - Math.floor(difference2min / 60000)).padStart(2, '0');
+                    const minutes = String(1 - Math.floor((difference2min-1000) / 60000)).padStart(2, '0');
                     const seconds = String(59 - Math.floor((difference2min-1000) / 1000) + 60 * Math.floor((difference2min-1000) / 60000)).padStart(2, '0');
 
                     countdownDisplay.innerText = `${minutes}:${seconds}`;
