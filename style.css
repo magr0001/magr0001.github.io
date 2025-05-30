@@ -1,0 +1,16 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+  padding: 2em;
+}
+.word {
+  font-size: 2em;
+  margin: 2em 0;
+}
+#settings.hidden {
+  display: none;
+}
+li.inactive {
+  color: grey;
+  text-decoration: line-through;
+}
