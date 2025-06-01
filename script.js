@@ -17,17 +17,16 @@ function getActiveWords() {
 
 function resizeWordText() {
   const el = document.getElementById("wordDisplay");
-  const parentWidth = window.innerWidth * 0.9; // 90% der Bildschirmbreite
-  let fontSize = 100; // px
+  const wrapper = el.parentElement;
 
-  el.style.fontSize = fontSize + "px";
+  // Setze initiale Größe zurück
+  el.style.transform = "scale(1)";
 
-  while (el.offsetWidth > parentWidth && fontSize > 10) {
-    fontSize--;
-    el.style.fontSize = fontSize + "px";
-  }
-
-  el.style.margin = "0 auto"; // zentrieren
+  // Timeout stellt sicher, dass die Größe korrekt ist
+  setTimeout(() => {
+    const scale = Math.min(1, wrapper.clientWidth / el.scrollWidth);
+    el.style.transform = `scale(${scale})`;
+  }, 0);
 }
 
 function showRandomWord() {
