@@ -35,6 +35,7 @@ function showRandomWord() {
   }
   const rand = active[Math.floor(Math.random() * active.length)];
   wordDisplay.innerText = rand.text;
+  resizeWordText(); // << hier hinzufügen
 }
 
 function resetTimer() {
