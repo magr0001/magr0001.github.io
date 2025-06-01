@@ -35,8 +35,16 @@ function showRandomWord() {
     wordDisplay.innerText = "Keine aktiven Wörter";
     return;
   }
-  const rand = active[Math.floor(Math.random() * active.length)];
-  wordDisplay.innerText = rand.text;
+  let currentText = wordDisplay.innerText;
+  let nextWord;
+  let attempts = 0;
+
+  do {
+    nextWord = active[Math.floor(Math.random() * active.length)];
+    attempts++;
+  } while (nextWord.text === currentText && active.length > 1 && attempts < 10);
+
+  wordDisplay.innerText = nextWord.text;
   resizeWordText(); // << hier hinzufügen
 }
 
