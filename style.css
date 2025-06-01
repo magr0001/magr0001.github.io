@@ -6,14 +6,18 @@ body {
   padding: 2em;
 }
 
+.word-wrapper {
+  width: 90vw;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .word {
-  display: block;
   white-space: nowrap;
-  max-width: 90vw;
-  font-size: 6em;
-  transition: font-size 0.2s ease;
-  text-align: center;
-  margin: 1em auto;
+  font-size: 6em; /* feste Max-Größe */
+  transition: transform 0.2s ease;
 }
 
 input[type="range"] {
