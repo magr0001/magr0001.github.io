@@ -11,21 +11,6 @@ input[type="range"] {
   height: 1.5em;
 }
 
-#intervalLabel {
-  margin-bottom: 2em;
-  font-size: 1.2em;
-}
-
-button {
-  background-color: #222;
-  color: white;
-  border: 1px solid #444;
-  padding: 0.5em 1em;
-  margin: 0.3em;
-  border-radius: 4px;
-  font-size: 1em;
-}
-
 input[type="text"] {
   background-color: #222;
   color: white;
