@@ -60,6 +60,11 @@ document.getElementById("settingsBtn").onclick = () => {
   document.getElementById("settings").classList.remove("hidden");
   document.body.classList.add("scroll-enabled");
   renderWordList();
+
+  // Scroll ganz nach unten
+  setTimeout(() => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }, 100); // kleiner Delay, damit das Layout vollständig sichtbar ist
 };
 
 document.getElementById("closeSettings").onclick = () => {
