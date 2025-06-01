@@ -17,14 +17,17 @@ function getActiveWords() {
 
 function resizeWordText() {
   const el = document.getElementById("wordDisplay");
-  const parent = el.parentElement;
-  let fontSize = 100; // in px
+  const parentWidth = window.innerWidth * 0.9; // 90% der Bildschirmbreite
+  let fontSize = 100; // px
+
   el.style.fontSize = fontSize + "px";
 
-  while (el.scrollWidth > parent.clientWidth && fontSize > 10) {
+  while (el.offsetWidth > parentWidth && fontSize > 10) {
     fontSize--;
     el.style.fontSize = fontSize + "px";
   }
+
+  el.style.margin = "0 auto"; // zentrieren
 }
 
 function showRandomWord() {
