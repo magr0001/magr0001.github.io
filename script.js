@@ -58,10 +58,13 @@ intervalSlider.addEventListener("input", () => {
 
 document.getElementById("settingsBtn").onclick = () => {
   document.getElementById("settings").classList.remove("hidden");
+  document.body.classList.add("scroll-enabled");
   renderWordList();
 };
+
 document.getElementById("closeSettings").onclick = () => {
   document.getElementById("settings").classList.add("hidden");
+  document.body.classList.remove("scroll-enabled");
 };
 
 document.getElementById("addWord").onclick = () => {
