@@ -33,6 +33,7 @@ function showRandomWord() {
   const active = getActiveWords();
   if (active.length === 0) {
     wordDisplay.innerText = "Keine aktiven Wörter";
+    resizeWordText();
     return;
   }
   let currentText = wordDisplay.innerText;
