@@ -112,8 +112,11 @@ input[type="text"] {
 
 /* Einzelnes Wort in der Liste */
 #wordList li {
-  margin: 0.5em 0;
+  margin: 0.2em 0; /* vorher z. B. 0.5em */
   cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* Deaktivierte Wörter ausgegraut */
