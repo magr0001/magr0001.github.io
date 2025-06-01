@@ -1,40 +1,20 @@
+/* Grundlayout im Dunkelmodus */
 body {
   background-color: #111;
   color: white;
   font-family: sans-serif;
-  text-align: center;
-  padding: 2em;
+  margin: 0;
+  padding: 0;
 }
 
-input[type="range"] {
-  width: 80%; /* vorher wahrscheinlich schmaler */
-  height: 1.5em;
-}
-
-input[type="text"] {
-  background-color: #222;
-  color: white;
-  border: 1px solid #444;
-  padding: 0.5em;
-  border-radius: 4px;
-  font-size: 1em;
-}
-
-#settings.hidden {
-  display: none;
-}
-
-li.inactive {
-  color: grey;
-  text-decoration: line-through;
-}
-
+/* Hauptstruktur: vertikal aufgeteilt */
 main {
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
+/* Bereich für das Wort */
 .word-zone {
   flex-grow: 1;
   display: flex;
@@ -43,6 +23,7 @@ main {
   padding: 2em;
 }
 
+/* Wrapper für dynamische Skalierung */
 .word-wrapper {
   width: 90vw;
   overflow: hidden;
@@ -51,28 +32,91 @@ main {
   align-items: center;
 }
 
+/* Das eigentliche Wort */
 .word {
   white-space: nowrap;
-  font-size: 6em;
+  font-size: 6em; /* maximale Größe */
   transition: transform 0.2s ease;
   text-align: center;
 }
 
+/* Bereich für Schieberegler und Einstellungen */
 .control-zone {
   padding: 1.5em;
   text-align: center;
 }
 
+/* Schieberegler */
 #intervalSlider {
   width: 80%;
   height: 1.5em;
 }
 
+/* Intervall-Anzeige */
 #intervalLabel {
   margin: 1em 0;
   font-size: 1.2em;
 }
 
+/* Buttons allgemein */
 button {
-  margin-top: 1em;
+  background-color: #222;
+  color: white;
+  border: 1px solid #444;
+  padding: 0.5em 1em;
+  margin: 0.3em;
+  border-radius: 4px;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+/* Eingabefeld für neues Wort */
+input[type="text"] {
+  background-color: #222;
+  color: white;
+  border: 1px solid #444;
+  padding: 0.5em;
+  border-radius: 4px;
+  font-size: 1em;
+  margin-top: 0.5em;
+}
+
+/* Einstellungsbereich */
+#settings {
+  padding: 1.5em;
+  background-color: #111;
+  color: white;
+}
+
+/* Unsichtbar, wenn versteckt */
+#settings.hidden {
+  display: none;
+}
+
+/* Wortliste */
+#wordList {
+  list-style: none;
+  padding: 0;
+}
+
+/* Einzelnes Wort in der Liste */
+#wordList li {
+  margin: 0.5em 0;
+  cursor: pointer;
+}
+
+/* Deaktivierte Wörter ausgegraut */
+li.inactive {
+  color: grey;
+  text-decoration: line-through;
+}
+
+/* Löschen-Button im Listeneintrag */
+#wordList li button {
+  background-color: transparent;
+  color: white;
+  border: none;
+  margin-left: 1em;
+  cursor: pointer;
+  font-size: 1em;
 }
