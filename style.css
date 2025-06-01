@@ -12,6 +12,9 @@ body {
   overflow: hidden; /* ← verhindert Scrollen */
   height: 100vh;
 }
+body.scroll-enabled {
+  overflow: auto;
+}
 
 /* Hauptstruktur: vertikal aufgeteilt */
 main {
