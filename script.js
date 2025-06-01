@@ -45,7 +45,7 @@ function resetTimer() {
   timer = setInterval(showRandomWord, interval);
 }
 
-wordDisplay.addEventListener("click", () => {
+document.getElementById("wordZone").addEventListener("click", () => {
   showRandomWord();
   resetTimer();
 });
