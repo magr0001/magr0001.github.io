@@ -10,7 +10,7 @@ body {
   display: inline-block;
   white-space: nowrap;
   max-width: 90vw;
-  overflow: hidden;
+  overflow: visible;
   font-size: 6em; /* Startwert – wird von JS überschrieben */
   transition: font-size 0.2s ease;
 }
