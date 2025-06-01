@@ -83,12 +83,22 @@ document.getElementById("closeSettings").onclick = () => {
 
 document.getElementById("addWord").onclick = () => {
   const newWord = document.getElementById("newWord").value.trim();
-  if (newWord) {
+  if (!newWord) return;
+
+  // Prüfen ob das Wort bereits existiert (Groß-/Kleinschreibung ignorieren)
+  const existing = words.find(w => w.text.toLowerCase() === newWord.toLowerCase());
+  if (existing) {
+    existing.active = true; // ggf. reaktivieren
+  } else {
     words.push({ text: newWord, active: true });
-    saveWords();
-    renderWordList();
-    document.getElementById("newWord").value = "";
   }
+
+  // Alphabetisch sortieren (case-insensitive)
+  words.sort((a, b) => a.text.localeCompare(b.text, 'de', { sensitivity: 'base' }));
+
+  saveWords();
+  renderWordList();
+  document.getElementById("newWord").value = "";
 };
 
 document.getElementById("activateAll").onclick = () => {
@@ -103,6 +113,8 @@ document.getElementById("deactivateAll").onclick = () => {
 };
 
 function renderWordList() {
+  words.sort((a, b) => a.text.localeCompare(b.text, 'de', { sensitivity: 'base' }));
+  
   wordList.innerHTML = "";
   words.forEach((word, i) => {
     const li = document.createElement("li");
