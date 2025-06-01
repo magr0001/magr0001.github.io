@@ -15,6 +15,18 @@ function getActiveWords() {
   return words.filter(w => w.active);
 }
 
+function resizeWordText() {
+  const el = document.getElementById("wordDisplay");
+  const parent = el.parentElement;
+  let fontSize = 100; // in px
+  el.style.fontSize = fontSize + "px";
+
+  while (el.scrollWidth > parent.clientWidth && fontSize > 10) {
+    fontSize--;
+    el.style.fontSize = fontSize + "px";
+  }
+}
+
 function showRandomWord() {
   const active = getActiveWords();
   if (active.length === 0) {
