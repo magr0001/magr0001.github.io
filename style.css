@@ -113,6 +113,7 @@ input[type="text"] {
 /* Einzelnes Wort in der Liste */
 #wordList li {
   font-size: 1.1em;
+  line-height: 1.1em;
   margin: 0.1em 0; /* vorher z. B. 0.5em */
   cursor: pointer;
   display: flex;
